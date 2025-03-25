@@ -26,6 +26,8 @@ if __name__ == '__main__':
     mp.set_start_method('spawn', force=True)
     args = argument()
     loggername = './log/' + args.commu + '/' + args.config_section + '.log'
+    if args.commu == 'hier' and args.config_section == 'server':
+        loggername = './log/' + args.commu + '/' + args.config_section + '.log'
     log = create_logger(loggername)
     log.info(args.config_section +' '+ args.server_ip +' '+ args.server_port)
     if args.commu == 'default':

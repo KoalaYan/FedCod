@@ -415,9 +415,12 @@ class NCDAGRClient(Client):
                 continue
 
             if data[0:3] == b'998':
-                if self.status_table[int(target[6:])] == 0:
-                    shm_name = self.push_shared_data(data)
-                    queue_list[target].put(shm_name)
+                for key in self.address_dict.keys():
+                    if key == 'server':
+                        continue
+                    if self.status_table[int(key[6:])] == 0:
+                        shm_name = self.push_shared_data(data)
+                        queue_list[key].put(shm_name)
             elif data[0:3] == b'997':
                 shm_name = self.push_shared_data(data)
                 queue_list[target].put(shm_name)

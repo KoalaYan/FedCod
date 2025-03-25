@@ -26,6 +26,12 @@ if __name__ == '__main__':
     mp.set_start_method('spawn', force=True)
     args = argument()
     loggername = './log/' + args.commu + '/' + args.config_section + '.log'
+    if args.commu == 'hier':        
+        if args.config_section == 'hierserver':
+            loggername = './log/' + args.commu + '/' + args.config_section + args.cfg_fn[-1] + '.log'
+        else:
+            loggername = './log/' + args.commu + '/client_' + args.cfg_fn[-1] + '_' + str(args.idx_users) + '.log'
+
     log = create_logger(loggername)
     log.info(args.config_section +' '+ args.client_ip +' '+ args.client_port)
     if args.commu == 'default':
@@ -63,10 +69,8 @@ if __name__ == '__main__':
 
     elif args.commu == 'hier':        
         if args.config_section == 'hierserver':
-            loggername = './log/' + args.commu + '/' + args.config_section + args.cfg_fn[-1] + '.log'
             client = HierCenterClient(args, loggername)
         else:
-            loggername = './log/' + args.commu + '/client_' + args.cfg_fn[-1] + '_' + str(args.idx_users) + '.log'
             client = HierClient(args, loggername)
     # elif args.commu == 'fedcod':
     #     client = FedCodClient(args, loggername)

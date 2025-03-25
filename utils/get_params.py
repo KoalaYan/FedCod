@@ -43,13 +43,14 @@ def get_updates_flatten(new_model_dict, model_dict):
 
 ### WARNING!!! ONLY FOR NETWORK TEST!
 def get_updates_flatten_network_test(new_model_dict, model_dict):
-    res = np.array([])
+    res = []
     for key in model_dict.keys():
         if "num_batches_tracked" not in key:
             # item = (model_dict[key]-new_model_dict[key]).cpu().numpy().ravel()
-            item = np.ones(shape=model_dict[key].cpu().numpy().ravel().shape())
-            res = np.append(res, item)
-        # res += np.random.random(res.size)
+            item = torch.ones(shape=model_dict[key].shape)
+            res.append(item.flatten())
+    
+    res = torch.cat(res).cpu().numpy().astype(np.float64)
     return res
 
 def rebuild_dict(params, model_dict):

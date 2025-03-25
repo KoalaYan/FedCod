@@ -35,7 +35,7 @@ class Coding:
         # M = np.array_split(M, k)
         if M.shape[0] % k != 0:
             zeros = np.zeros(k-M.shape[0] % k)
-            M = np.append(M, zeros)
+            M = np.concatenate([M, zeros])
         M = M.reshape(-1)
         M = np.array_split(M, k)
         return self.multiply(M, G)
@@ -58,7 +58,7 @@ class OptimizedCoding:
     def RS(self, n, k):
         I = np.identity(k)
         P = self.Cauchy(n - k, k)
-        return np.concatenate((I, P), axis=0)
+        return np.concatenate((I, P), axis=0).astype(np.float64)
 
     def multiply(self, M, G):
         R = np.matmul(G, M)
@@ -68,7 +68,7 @@ class OptimizedCoding:
         G = self.RS(k + r, k)
         if M.shape[0] % k != 0:
             zeros = np.zeros(k - M.shape[0] % k)
-            M = np.append(M, zeros)
+            M = np.concatenate([M, zeros])
         M = M.reshape(k, -1)
         # print(M.shape, G.shape)
         return self.multiply(M, G)
@@ -85,7 +85,7 @@ class Ratelesscoding:
     def split(self, array, k):  # split the original matrix into k parts
         if array.shape[0] % k != 0:
             zeros = np.zeros(k-array.shape[0] % k)
-            array = np.append(array, zeros)
+            array = np.concatenate([array, zeros])
         array = array.reshape(-1)
         array = np.split(array, k)
         return array
@@ -126,7 +126,7 @@ class NetworkCoding:
         k = self.k
         if array.shape[0] % k != 0:
             zeros = np.zeros(k-array.shape[0] % k)
-            array = np.append(array, zeros)
+            array = np.concatenate([array, zeros])
         array = array.reshape(-1)
         array = np.split(array, k)
         I = np.identity(k)
@@ -139,14 +139,16 @@ class NetworkCoding:
     
     def encoding(self, blocks, low, high, r):
         n = len(blocks)
-        blocks = np.stack(blocks, axis=0)
+        # blocks = np.stack(blocks, axis=0)
         index = np.random.randint(low, high, size=(r, n))
+        # index = np.random.rand(r, n)
+
         encoded_blocks = np.dot(index, blocks)
         return encoded_blocks
 
     def decoding(self, encoded_blocks, coefficient_matrix):
         if type(encoded_blocks) == isinstance(encoded_blocks, list):
             encoded_blocks = np.vstack(encoded_blocks)
-        inverse_matrix = np.linalg.inv(coefficient_matrix)
+        inverse_matrix = np.linalg.inv(coefficient_matrix.astype(np.int32))
         decoded_blocks = np.dot(inverse_matrix, encoded_blocks) #[inverse_matrix[i] @ encoded_blocks for i in range(self.k)]
         return decoded_blocks

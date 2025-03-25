@@ -2,6 +2,7 @@ import argparse
 
 def args_parser():
     parser = argparse.ArgumentParser()
+    parser.add_argument('--cfg_fn', type=str, default='cfg', help='configure file name')
     # federated arguments
     parser.add_argument('--commu', type=str, default='default', help='communication arch: default/fedcod')
     parser.add_argument('--epochs', type=int, default=10, help="rounds of training")
@@ -13,8 +14,8 @@ def args_parser():
     parser.add_argument('--local_ep', type=int, default=1, help="the number of local epochs: E")
     parser.add_argument('--local_bs', type=int, default=64, help="local batch size: B")
     parser.add_argument('--bs', type=int, default=128, help="test batch size")
-    parser.add_argument('--lr', type=float, default=0.5, help="learning rate")
-    parser.add_argument('--momentum', type=float, default=0.5, help="SGD momentum (default: 0.5)")
+    parser.add_argument('--lr', type=float, default=0.01, help="learning rate")
+    parser.add_argument('--momentum', type=float, default=0.9, help="SGD momentum (default: 0.5)")
     parser.add_argument('--split', type=str, default='user', help="train-test split type, user or sample")
     parser.add_argument('--idx_users', type=int, default=0, help="the index of each client")
 
@@ -58,8 +59,10 @@ def args_parser():
     # config
     parser.add_argument('--client_ip', type=str, default='127.0.0.2', help="client ip address")
     parser.add_argument('--server_ip', type=str, default='127.0.0.1', help="server ip address")
+    parser.add_argument('--hierserver_ip', type=str, default='127.0.0.3', help="hierarchical server ip address")
     parser.add_argument('--client_port', type=str, default='8000', help="client tcp port")
     parser.add_argument('--server_port', type=str, default='9999', help="server ip address")
+    parser.add_argument('--hierserver_port', type=str, default='9999', help="hierarchical server ip address")
     parser.add_argument('--client_ip_list', nargs='+', default=['127.0.0.2'])
     parser.add_argument('--client_port_list', nargs='+', default=['8000'])
     parser.add_argument('--config_section', type=str, default='client0', help="the section of the cfg.ini")

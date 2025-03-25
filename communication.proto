@@ -1,0 +1,14 @@
+syntax = "proto3";
+
+message request {
+	bytes message = 1;
+}
+
+message response {
+	bytes message = 1;
+}
+
+//定义服务，下面定义的这种为最简单的rpc服务，客户端发起请求，服务端返回结果,stream关键字用来定义流式传输
+service Stream {
+	rpc MsgStream (stream request) returns (response) {}
+}

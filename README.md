@@ -15,6 +15,24 @@ Script `bash.sh` can start the server process and $9$ client processes to test t
 ## Communication through WAN
 After updating the configuration file, you can start FL training by running `python server.py --config_section server --commu fedcod` on the server and running `python client.py --config_section client{$i} --commu fedcod` on the client-$i. We recommend using *ansible* to manage multiple GPU clusters.
 
+
+```
+default: baseline, server-client communication
+ncdown: Only apply network coding in download phase
+ncddown: Only apply network coding with one-hop direct forwarding in download phase
+ncupload: Only apply network coding in upload phase
+nc: network coding in both download and upload phases
+ncd: network coding with one-hop direct forwarding in both download and upload phases
+agr: pre-aggregation in non-waiting mode for upload phase
+agrw: pre-aggregation in waiting mode for upload phase
+ncagr: network coding for both phases, and pre-aggregation in non-waiting mode for upload phase
+ncagrw: network coding for both phases, and pre-aggregation in waiting mode for upload phase
+ncdagrw: network coding with one-hop direct forwarding for both phases, and pre-aggregation in waiting mode for upload phase
+dncagr:dynamic redundancy, network coding for both phases, and pre-aggregation in waiting mode for upload phase
+dncdagr: dynamic redundancy, network coding with one-hop direct forwarding for both phases, and pre-aggregation in waiting mode for upload phase
+hier: hierachical FL
+```
+
 ## Requirements
 Some required python libraries:
 ```
@@ -25,4 +43,6 @@ torchvision
 grpcio
 protobuf
 multiprocess
+pandas
+scikit-learn
 ```

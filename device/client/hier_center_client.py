@@ -140,7 +140,7 @@ class HierCenterClient(Node, communication_pb2_grpc.StreamServicer):
                 count += 1
                 param_list.append(pickle.loads(data[6:]))
                 
-            new_params = torch.mean(torch.tensor(param_list), dim=0)
+            new_params = torch.mean(torch.tensor(np.array(param_list)), dim=0)
             cur_up_time = time.time()
             log.info('Iteration '+ str(iter) + ". Uploading starts in {0} ".format(cur_up_time))
             model_local_byte = pickle.dumps(new_params)

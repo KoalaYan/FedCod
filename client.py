@@ -21,6 +21,7 @@ from device.client.preagr_wait_client import AGRWClient
 from device.client.preagr_nowait_client import AGRClient
 from device.client.hier_client import HierClient
 from device.client.hier_center_client import HierCenterClient
+from device.client.all_reduce_client import AR_Client
 
 if __name__ == '__main__':
     mp.set_start_method('spawn', force=True)
@@ -72,6 +73,9 @@ if __name__ == '__main__':
             client = HierCenterClient(args, loggername)
         else:
             client = HierClient(args, loggername)
+            
+    elif args.commu == "allreduce":
+        client = AR_Client(args, loggername)
     # elif args.commu == 'fedcod':
     #     client = FedCodClient(args, loggername)
 

@@ -21,6 +21,7 @@ from device.server.nc_upload_server import NCUploadServer
 from device.server.preagr_wait_server import AGRWServer
 from device.server.preagr_nowait_server import AGRServer
 from device.server.hier_server import HierServer
+from device.server.all_reduce_server import AR_Server
 
 if __name__ == '__main__':
     mp.set_start_method('spawn', force=True)
@@ -66,6 +67,9 @@ if __name__ == '__main__':
     elif args.commu == 'hier' and args.config_section == 'server':
         loggername = './log/' + args.commu + '/' + args.config_section + '.log'
         server = HierServer(args, loggername)
+
+    elif args.commu == 'allreduce':
+        server = AR_Server(args, loggername)
     
     # elif args.commu == 'fedcod':
     #     server = FedCodServer(args, loggername) 

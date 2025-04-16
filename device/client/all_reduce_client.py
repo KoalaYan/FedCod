@@ -64,10 +64,20 @@ class AR_Client(Client):
     def assign(self, params, x_list):
         arr_local = params.reshape(-1)
         model_local = self.split(arr_local, self.args.upload_k)
-        prefix_sum = np.cumsum(x_list)
-        schedule = np.zeros(self.args.upload_k, dtype=int)
-        for i in range(self.args.upload_k):
-            schedule[i] = np.searchsorted(prefix_sum, (i + 1) / self.args.upload_k)
+        
+        k = self.args.upload_k
+        y = 0.0
+        l = 0
+        schedule = [0] * k
+
+        for i in range(len(x_list)):
+            y += x_list[i]
+            u = int(round(y * k))
+            for j in range(l, u):
+                if j < k:
+                    schedule[j] = i
+            l = u
+        print("schedule: ", schedule)
         return model_local, schedule
     
     def assemble(self, local_iter, log):
@@ -214,6 +224,32 @@ class AR_Client(Client):
     # 666 [0:3] + iteration number [3:6] + user index [6:9]
     def ack(self, local_iter):
         bandwidths = np.ones(self.args.num_users)
+
+        # 带宽测试数据
+        test_data = b'404' + b'x' * 1024 * 1024  # 1MB 测试数据
+        test_data_size = len(test_data)
+
+        for i in range(self.args.num_users):
+            if i == self.args.idx_users:
+                bandwidths[i] = 100000  # 自己的带宽设置为100000
+                continue  # 跳过自己
+
+            client_name = f'client{i}'
+            client_ip, client_port = self.address_dict[client_name]
+
+            try:
+                start_time = time.time()
+                uri = f"{client_ip}:{client_port}"
+                asyncio.run(self.send(test_data, uri))
+                end_time = time.time()
+                elapsed_time = end_time - start_time
+                bandwidths[i] = test_data_size / (elapsed_time * 1024 * 1024)
+
+            except Exception as e:
+                print(f"Failed: {client_name}, Error: {e}")
+                bandwidths[i] = 0
+
+        # print(bandwidths)
         bandwidths_byte = pickle.dumps(bandwidths)
 
         user_str = str(self.args.idx_users)  # change user_idx to str

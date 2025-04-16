@@ -104,6 +104,7 @@ class AR_Server(Server):
         
         commu_x_list = self.solve_bandwidth_allocation(np.array(bandwidths_list))
         # print(commu_x_list)
+        print("results:", commu_x_list)
                 
         commu_x_list_byte = pickle.dumps(commu_x_list)
 

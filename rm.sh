@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # 目录列表
-dirs=("default" "ncdown" "ncddown" "ncupload" "nc" "ncd" "agr" "agrw" "ncagr" "ncagrw" "ncdagrw" "dncagr" "dncdagr" "hier")
+dirs=("default" "ncdown" "ncddown" "ncupload" "nc" "ncd" "agr" "agrw" "ncagr" "ncagrw" "ncdagrw" "dncagr" "dncdagr" "hier" "allreduce")
 
 # 循环遍历每个目录
 for dir in "${dirs[@]}"; do

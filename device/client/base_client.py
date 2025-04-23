@@ -18,6 +18,7 @@ from threading import Thread
 from queue import Queue
 import heapq
 import sys
+import time
 # import psutil
 
 from utils.config_to_arg import argument
@@ -44,17 +45,18 @@ class Client(Node, communication_pb2_grpc.StreamServicer):
    
     def train_iter(self, log):
         net = self.model
-        optimizer = torch.optim.SGD(net.parameters(), lr=self.args.lr, momentum=self.args.momentum)
+        time.sleep(13.5)
+        # optimizer = torch.optim.SGD(net.parameters(), lr=self.args.lr, momentum=self.args.momentum)
 
-        for iter in range(self.args.local_ep):
-            for j, item in enumerate(self.train_data):
-                x, y = item
-                optimizer.zero_grad()
-                output = net(x)
-                loss = F.nll_loss(output, y)
-                loss.backward()
-                # utils.clip_gradient(optimizer=optimizer, grad_clip=1e-2)
-                optimizer.step()
+        # for iter in range(self.args.local_ep):
+        #     for j, item in enumerate(self.train_data):
+        #         x, y = item
+        #         optimizer.zero_grad()
+        #         output = net(x)
+        #         loss = F.nll_loss(output, y)
+        #         loss.backward()
+        #         # utils.clip_gradient(optimizer=optimizer, grad_clip=1e-2)
+        #         optimizer.step()
         
         # correct = 0
         # with torch.no_grad():

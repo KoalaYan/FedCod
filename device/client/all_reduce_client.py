@@ -82,7 +82,7 @@ class AR_Client(Client):
     
     def assemble(self, local_iter, log):
         num = 0
-        part_list = [None] * self.args.num_users
+        part_list = [None] * self.args.upload_k
         model_glob = None
         
         while True:

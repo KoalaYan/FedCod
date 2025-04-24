@@ -94,7 +94,7 @@ class AR_Client(Client):
                 return None
             
             if int(data[3:6]) != local_iter:
-                # print("out-of-date data")
+                log.info("Iteration " + str(local_iter) + ", block id " + str(index) + " is not for this iteration.")
                 continue
             
             log.info('Iteration '+ str(local_iter) + ". Block is received at {0} ".format(rec_time))
@@ -332,24 +332,26 @@ class AR_Client(Client):
                     data = self.pop_shared_data(shm_name)
 
                     iter_ster = int(data[3:6])
+                    index = int(data[6:9])
                     cur_time = time.time()
                     if data[:3] == b'999':
-                        log.info("Iteration " + str(iter_ster) + ", Reduced block is sent to " + key + " at {0} ".format(cur_time))
+                        log.info("Iteration " + str(iter_ster) + ", Reduced block " + str(index) + " is sent to " + key + " at {0} ".format(cur_time))
                     elif data[:3] == b'997':
                         part_idx = int(data[6:9])
                         log.info("Iteration " + str(iter_ster) + ", Block " + str(part_idx) + " is scattered to " + key + " at {0} ".format(cur_time))
                     log.info("Block size is {0} ".format(data.__sizeof__()/(2**20)))
                     
-                    if int(data[3:6]) == iter.value:
+                    # if int(data[3:6]) == iter.value:
+                    #     log.info("Current iteration is " + str(iter.value) + " but the data is " + str(iter_ster))
                         # await self.send(data, uri)
-                        await self.lc_send(data, channel)
+                    await self.lc_send(data, channel)
 
                     cur_time = time.time()
                     if data[0:3] == b'999':
-                        log.info("Iteration " + str(iter_ster) + ", Reduced block is sent to " + key + " Over! at {0} ".format(cur_time))
+                        log.info("Iteration " + str(iter_ster) + ", Reduced block " + str(index) + " is sent to " + key + " Over! at {0} ".format(cur_time))
                     elif data[0:3] == b'997':
                         part_idx = int(data[6:9])
-                        log.info("Iteration " + str(iter_ster) + ", Block " + str(part_idx) + " is upload to " + key + " Over! at {0} ".format(cur_time))
+                        log.info("Iteration " + str(iter_ster) + ", Block " + str(part_idx) + " is scattered to " + key + " Over! at {0} ".format(cur_time))
             else:
                 shm_name = ack.get()
                 data = self.pop_shared_data(shm_name)

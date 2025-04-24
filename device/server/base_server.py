@@ -187,10 +187,10 @@ class Server(Node, communication_pb2_grpc.StreamServicer):
             cur_1_time = time.time()
             log.info('Iteration '+ str(iter) + ". Aggregation took around {0} seconds to complete".format(cur_1_time - cur_2_time))
             self.model.load_state_dict(model_dict)
-            correct = self.evaluate()
-            log.info(
-                'Round {:3d}, Test accuracy: {:.2f}'.format(
-                    iter, correct))
+            # correct = self.evaluate()
+            # log.info(
+            #     'Round {:3d}, Test accuracy: {:.2f}'.format(
+            #         iter, correct))
             
         shm_name = self.push_shared_data(b'000')
         self.send_queue.put(shm_name)

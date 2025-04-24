@@ -235,10 +235,10 @@ class NCAGRServer(Server):
             model_dict = algorithms.fedavg(param_list, self.model, self.args)
             self.model.load_state_dict(model_dict)
             self.glob_iter.value += 1
-            correct = self.evaluate()
-            log.info(
-                'Round {:3d}, Test accuracy: {:.2f}'.format(
-                    t, correct))
+            # correct = self.evaluate()
+            # log.info(
+            #     'Round {:3d}, Test accuracy: {:.2f}'.format(
+            #         t, correct))
             
         print(" Shutdown.")
         shm_name = self.push_shared_data(b'000')

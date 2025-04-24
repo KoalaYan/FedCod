@@ -140,10 +140,10 @@ class CodServer(Server):
             log.info('Iteration '+ str(t) + ". Uploading ends at {0} ".format(cur_up_time))
             model_dict = algorithms.fedavg(param_list, self.model, self.args)
             self.model.load_state_dict(model_dict)
-            correct = self.evaluate()
-            log.info(
-                'Round {:3d}, Test accuracy: {:.2f}'.format(
-                    t, correct))
+            # correct = self.evaluate()
+            # log.info(
+            #     'Round {:3d}, Test accuracy: {:.2f}'.format(
+            #         t, correct))
         for key in self.address_dict.keys():
             print(key, " Shutdown.")
             self.send_queue.put((b'000', key))

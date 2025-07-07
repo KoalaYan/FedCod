@@ -1,4 +1,5 @@
 import numpy as np
+import time
 
 class Coding:
     def Cauchy(self, m, n):
@@ -152,3 +153,64 @@ class NetworkCoding:
         inverse_matrix = np.linalg.inv(coefficient_matrix.astype(np.int32))
         decoded_blocks = np.dot(inverse_matrix, encoded_blocks) #[inverse_matrix[i] @ encoded_blocks for i in range(self.k)]
         return decoded_blocks
+    
+def test_coding_time(param_volume=6e7, num_users=9, download_k=9, upload_k=9, upload_r=3):
+
+     # 60 million parameters for ResNet152
+    model_params = np.random.rand(int(param_volume))  # Simulating model parameters
+
+    # NetworkCoding test
+    nc = NetworkCoding(download_k)
+
+    encode_time_list = []
+    encoded_blocks = []
+    for t in range(10):
+        start_time = time.time()
+        blocks = nc.split(model_params)
+        blocks = nc.encoding(blocks, 0, 128, num_users)
+        end_time = time.time()
+        for block in blocks:
+            encoded_blocks.append(block)
+        encode_time_list.append(end_time - start_time)
+    print(f"Encoding time: {np.average(encode_time_list)} seconds")
+
+    decode_time_list = []
+    for t in range(10):
+        sample_index = np.random.choice(download_k*10, size=download_k, replace=False)
+        indexs = [encoded_blocks[i][:download_k] for i in sample_index]
+        idx_list = np.stack(indexs)
+        rank_matrix = np.linalg.matrix_rank(idx_list)
+        selected_blocks = [encoded_blocks[i][download_k:] for i in sample_index]
+        start_time = time.time()
+        decoded_blocks = nc.decoding(selected_blocks, idx_list)
+        end_time = time.time()
+        decode_time_list.append(end_time - start_time)
+    print(f"Decoding time: {np.average(decode_time_list)} seconds")
+
+    # Coded Aggregation test
+    coding = OptimizedCoding()
+
+    encode_time_list = []
+    model_local = []
+    for t in range(10):
+        start_time = time.time()
+        model_local = coding.encode_RS(model_params, upload_k, upload_r)
+        end_time = time.time()
+        encode_time_list.append(end_time - start_time)
+    print(f"Coded Aggregation encoding time: {np.average(encode_time_list)} seconds")
+
+    decode_time_list = []
+    for t in range(10):
+        sample_index = np.random.choice(upload_k+upload_r, size=upload_k, replace=False)
+        selected_blocks = np.concatenate([model_local[i] for i in sample_index], axis=0)
+        start_time = time.time()
+        model_glob = coding.decode_RS(selected_blocks, upload_k, upload_r, sample_index)
+        end_time = time.time()
+        decode_time_list.append(end_time - start_time)
+    print(f"Coded Aggregation decoding time: {np.average(decode_time_list)} seconds")
+
+for param_volume in [6e7, 1e8, 2e8]:
+    print(f"Testing with {param_volume} parameters:")
+    test_coding_time(param_volume=param_volume, num_users=9, download_k=9, upload_k=9, upload_r=3)
+    print("\n" + "="* 50 + "\n")
+

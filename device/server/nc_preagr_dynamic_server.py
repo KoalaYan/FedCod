@@ -184,7 +184,7 @@ class NCAGRServer(Server):
     '''
 
     def update_upload_r(self, t_last, t_cur):
-        update_lambda = 1.2
+        update_lambda = self.args.coding_lambda
         if t_cur < t_last * update_lambda and self.update_flag == False:
             self.upload_r = max(self.bottom, self.upload_r - self.args.r_delta)
             self.update_p += 1

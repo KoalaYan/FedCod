@@ -34,6 +34,7 @@ def args_parser():
     parser.add_argument('--upload_r', type=int, default=4, help='the number of stragglers in uploading')
     parser.add_argument('--download_k', type=int, default=6, help='the value of k in downloading')
     parser.add_argument('--download_r', type=int, default=4, help='the number of stragglers in downloading')
+    parser.add_argument('--coding_lambda', type=float, default=1.2, help="lambda value in dynamic coding setting")
 
     # other arguments
     parser.add_argument('--dataset', type=str, default='FashionMNIST', help="name of dataset")

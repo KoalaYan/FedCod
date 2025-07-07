@@ -189,12 +189,12 @@ class NCDAGRServer(Server):
             self.upload_r = max(self.bottom, self.upload_r - self.args.r_delta)
             self.update_p += 1
         elif t_cur > t_last * update_lambda:
-            self.upload_r = min(self.args.r_thres, (self.upload_r + self.args.r_thres) / 2)
+            self.upload_r = min(self.args.r_thres, int((self.upload_r + self.args.r_thres) / 2))
             self.bottom = min(self.args.num_users + self.bottom, self.args.r_thres)
             self.update_flag = True
             self.update_p = 0
         elif t_cur < t_last / update_lambda and self.update_flag == True:
-            self.upload_r = min(self.args.r_thres, (self.upload_r + self.args.r_thres) / 2)
+            self.upload_r = min(self.args.r_thres, int((self.upload_r + self.args.r_thres) / 2))
             self.bottom = min(self.args.r_delta + self.bottom, self.args.r_thres)
             self.update_p = 0
         else:
@@ -261,8 +261,9 @@ class NCDAGRServer(Server):
             log.info('Iteration '+ str(t) + ". Uploading ends at {0} ".format(cur_time))
             t_cur = cur_time - last_time
             log.info('Iteration '+ str(t) + ". Operation took around {0} seconds to complete".format(t_cur))
-            upload_r = self.update_upload_r(t_last, t_cur)
-            log.info('Iteration '+ str(t) + ". New Upload Redundancy r is: {0}".format(upload_r))
+            if t > 1:
+                upload_r = self.update_upload_r(t_last, t_cur)
+            log.info('Iteration '+ str(t) + ". New Upload Redundancy r is: {0}".format(self.upload_r))
             t_last = t_cur
             param_list = [torch.Tensor(model_glob).reshape(-1,1).to(device)]
             model_dict = algorithms.fedavg(param_list, self.model, self.args)

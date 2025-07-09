@@ -26,7 +26,7 @@ import sys
 
 from utils.config_to_arg import argument
 from utils.logger import create_logger # Logger
-from utils.coding import Coding, Ratelesscoding, OptimizedCoding, NetworkCoding
+from utils.coding import OptimizedCoding, NetworkCoding
 from utils.get_params import rebuild_dict, rebuilt_dict_flatten, get_params, get_updates, get_updates_flatten, get_updates_flatten_network_test
 import models
 from node import Node
@@ -144,6 +144,9 @@ class NCDAGRClient(Client):
                     new_data = self.fusion(old_data, model_local_byte)
                     vec = int.from_bytes(new_data[9:13], byteorder='big')
                     if vec == flag:
+                        # sleep with probability 0.3
+                        if np.random.rand() < 0.2:
+                            time.sleep(15)
                         self.lock.release()
                         shm_name = self.push_shared_data(new_data)
                         self.upload_queue.put(shm_name)
@@ -201,6 +204,9 @@ class NCDAGRClient(Client):
                 new_data = self.fusion(old_data, data)
                 vec = int.from_bytes(new_data[9:13], byteorder='big')
                 if vec == flag:
+                    # sleep with probability 0.3
+                    if np.random.rand() < 0.2:
+                        time.sleep(15)
                     self.lock.release()
                     shm_name = self.push_shared_data(new_data)
                     self.upload_queue.put(shm_name)

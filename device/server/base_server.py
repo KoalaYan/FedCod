@@ -21,7 +21,6 @@ import time
 from utils.config_to_arg import argument
 from utils.logger import create_logger
 from utils.get_params import get_params, get_params_flatten, rebuilt_dict_flatten
-from utils.coding import structure, Coding, Ratelesscoding, OptimizedCoding, NetworkCoding
 from data_distribution import HAR_dataloader
 from node import Node
 import algorithms

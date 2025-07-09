@@ -14,6 +14,7 @@ import signal
 from threading import Thread
 from queue import Queue
 import numpy as np
+from transformers import LlamaConfig, LlamaForCausalLM
 
 import communication_pb2
 import communication_pb2_grpc
@@ -49,6 +50,27 @@ class Node(communication_pb2_grpc.StreamServicer):
             net = models.AlexNet().cpu()
         elif net_type == 'LR':
             net = models.LR().cpu()
+        elif net_type == 'tiny-llama':
+            # 定义 TinyLlama-1.1B 的配置
+            config = LlamaConfig(
+                hidden_size=2048,
+                intermediate_size=5632,
+                num_hidden_layers=22,
+                num_attention_heads=8,
+                vocab_size=32000,
+                max_position_embeddings=2048,
+                initializer_range=0.02,
+                rms_norm_eps=1e-6,
+                use_cache=True,
+                pad_token_id=0,
+                bos_token_id=1,
+                eos_token_id=2
+            )
+
+            # 随机初始化模型
+            net = LlamaForCausalLM(config)
+            total_params = sum(p.numel() for p in net.parameters())
+            print(f"Total parameters: {total_params / 1e9:.2f}B")
         else:
             raise NotImplementedError
         return net

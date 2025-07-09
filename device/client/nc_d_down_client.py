@@ -5,32 +5,19 @@ Upload: (k,r) RS-code and direct forward (upload first, forward second)
 '''
 
 import multiprocessing as mp
-import numpy as np
-import websockets.client
-import websockets.server
 import asyncio
 import time
 import torch
 from configparser import ConfigParser
 from torch.utils.data import DataLoader, TensorDataset
-import torch.nn.functional as F
-import functools
 import pickle
 from copy import deepcopy
 import os
 import signal
-from threading import Thread
-from queue import Queue
-import heapq
-import sys
-# import psutil
 
-from utils.config_to_arg import argument
-from utils.logger import create_logger # Logger
+from utils.logger import create_logger
 from utils.coding import OptimizedCoding, NetworkCoding
-from utils.get_params import rebuild_dict, rebuilt_dict_flatten, get_params, get_updates, get_updates_flatten, get_updates_flatten_network_test
-import models
-from node import Node
+from utils.get_params import rebuilt_dict_flatten, get_updates_flatten
 
 from concurrent import futures
 import grpc
@@ -70,18 +57,14 @@ class NCDDownClient(Client):
             if int(data[3:6]) != local_iter:
                 continue
             
-            # if data[:3] == b'999':
-            #     send_data = b'998' + data[3:]
-            #     self.send_queue.put((send_data, 'all'))
-
             log.info('Iteration '+ str(local_iter) + ". Block is received at {0} ".format(rec_time))
             block = pickle.loads(data[6:])
             block = block.reshape(-1)
             index = block[:self.args.download_k]
             data_block = block[self.args.download_k:]
             if idx_matrix is not None:
-                tmp_matrix = np.vstack((idx_matrix, index))
-                rank_matrix = np.linalg.matrix_rank(tmp_matrix)
+                tmp_matrix = torch.vstack((idx_matrix, index))
+                rank_matrix = torch.linalg.matrix_rank(tmp_matrix)
                 if rank_matrix != len(block_list) + 1:
                     continue
             else:
@@ -93,20 +76,11 @@ class NCDDownClient(Client):
             block_list.append(block)
             log.info("Recent block number is " + str(len(block_list)) + ".")
 
-            # encoded_block = nc.encoding(block_list, 0, 128, 1)            
-            # model_glob_byte = pickle.dumps(encoded_block)
-            # iter_str = str(local_iter)  # change iter to str
-            # iter_str = iter_str.zfill(3)  # change iter into 3 digit
-            # send_data = b'998' + bytes(iter_str, encoding="utf8") + model_glob_byte
-            # send_queue.put((send_data, 'all'))
-            # time.sleep(0.1)
-            
-
             if len(part_list) == self.args.download_k:
                 self.ack()
                 pre_code_time = time.time()
                 log.info('Iteration '+ str(self.iter.value) + ". Server blocks is received at {0} ".format(pre_code_time))
-                decoded_blocks = nc.decoding(part_list.copy(), idx_matrix.copy())
+                decoded_blocks = nc.decoding(part_list, idx_matrix)
                 model_glob = decoded_blocks.reshape(-1)
                 cur_code_time = time.time()
                 log.info('Iteration '+ str(self.iter.value) + "。 Decoding took about {0} seconds to complete".format(cur_code_time - pre_code_time))

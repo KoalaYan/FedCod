@@ -1,30 +1,15 @@
 import multiprocessing as mp
-import numpy as np
-import websockets.client
-import websockets.server
 import asyncio
-from configparser import ConfigParser
-import functools
 import pickle
 import torch
-from torch.utils.data import DataLoader, TensorDataset
-from torchvision import transforms
-import torchvision
-import threading
 import os
 import signal
-from threading import Thread
-from queue import Queue
 import time
 
-from utils.config_to_arg import argument
 from utils.logger import create_logger
-from utils.get_params import get_params, get_params_flatten, rebuilt_dict_flatten
+from utils.get_params import get_params_flatten
 from utils.coding import structure, OptimizedCoding, NetworkCoding
-from data_distribution import HAR_dataloader
-from node import Node
 import algorithms
-import models
 
 from concurrent import futures
 import grpc
@@ -43,8 +28,7 @@ class NCAGRServer(Server):
         self.update_p = 0
 
     def encoder(self, params, coding):
-        arr_glob = params.reshape(-1)
-        model_glob = coding.encode_RS(arr_glob, self.args.download_k, self.args.download_r)
+        model_glob = coding.encode_RS(params, self.args.download_k, self.args.download_r)
         return model_glob
 
     '''
@@ -63,14 +47,9 @@ class NCAGRServer(Server):
     '''
 
     def decoding(self, part_list, order_list, coding):        
-        model_local = np.array([])
-        for i in order_list:
-                model_local = np.append(model_local,
-                                       part_list[i])
-        model_local = model_local.reshape(self.args.upload_k, -1)
-        model_local = coding.decode_RS(model_local, self.args.upload_k, self.args.upload_r,
-                                      order_list)
-        # reshape
+        model_local = torch.cat([part_list[i] for i in order_list], dim=0)
+        model_local = coding.decode_RS(model_local, self.args.upload_k, self.args.upload_r, torch.tensor(order_list))
+
         model_local = model_local.reshape(-1)
 
         return model_local
@@ -211,13 +190,13 @@ class NCAGRServer(Server):
         blocks = nc.split(params)
         # encoded_blocks = nc.encoding(blocks, 0, 128, self.args.download_k * self.args.num_users)
         for i in range(self.args.download_k):
-            encoded_blocks = nc.encoding(blocks, 0, 128, self.args.num_users)
+            encoded_blocks = nc.encoding(blocks, 0, 1024, self.args.num_users)
             for j in range(self.args.num_users):
                 if self.status_table[j] != 0:
                     continue
 
                 # encoded_block = nc.encoding(blocks, 0, 128, 1)
-                encoded_block = encoded_blocks[j]
+                encoded_block = encoded_blocks[j].clone().detach()
                 
                 model_glob_byte = pickle.dumps(encoded_block)
 
@@ -232,7 +211,8 @@ class NCAGRServer(Server):
                 shm_name = self.push_shared_data(send_byte)
                 self.send_queue.put((shm_name, key))
                 # log.info("Queue Block size is {0} ".format(send_byte.__sizeof__()/(2**20)))
-                    
+            del encoded_blocks
+                
     def processor(self):
         log = create_logger(self.loggername)
         device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')

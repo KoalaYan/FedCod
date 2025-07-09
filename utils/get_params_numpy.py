@@ -5,13 +5,20 @@ def get_params(model_dict):
     param_1 = [model_dict[key] for key in model_dict.keys() if "num_batches_tracked" not in key]
     return param_1
 
-def get_params_flatten(model_dict):    
+def get_params_flatten(model_dict):
+    # param_1 = []
+    # for key in model_dict.keys():
+    #     if "num_batches_tracked" not in key:
+    #         item = model_dict[key].cpu().numpy().ravel()
+    #         param_1.append(item)
+    # param_1 = np.concatenate(param_1)
+    
     param_1 = []
     for key in model_dict.keys():
         if "num_batches_tracked" not in key:
             item = model_dict[key]
             param_1.append(item.flatten())
-    param_1 = torch.cat(param_1)
+    param_1 = torch.cat(param_1).cpu().numpy().astype(np.float64)
     return param_1
     
 def get_updates(new_model_dict, model_dict):
@@ -19,12 +26,19 @@ def get_updates(new_model_dict, model_dict):
     return res
 
 def get_updates_flatten(new_model_dict, model_dict):
+    # res = np.array([])
+    # for key in model_dict.keys():
+    #     if "num_batches_tracked" not in key:
+    #         item = model_dict[key]-new_model_dict[key]
+    #         res = np.append(res, item.cpu().numpy().ravel())
     res = []
     for key in model_dict.keys():
         if "num_batches_tracked" not in key:
             item = model_dict[key] - new_model_dict[key]
+            # 直接将计算结果添加到列表中，而不是使用 .cpu().numpy().ravel()
             res.append(item.flatten())
-    res = torch.cat(res)
+    # 将列表中的所有张量堆叠起来形成一个大的张量
+    res = torch.cat(res).cpu().numpy().astype(np.float64)
     return res.ravel()
 
 ### WARNING!!! ONLY FOR NETWORK TEST!
@@ -32,9 +46,11 @@ def get_updates_flatten_network_test(new_model_dict, model_dict):
     res = []
     for key in model_dict.keys():
         if "num_batches_tracked" not in key:
+            # item = (model_dict[key]-new_model_dict[key]).cpu().numpy().ravel()
             item = torch.ones(shape=model_dict[key].shape)
             res.append(item.flatten())
-    res = torch.cat(res)
+    
+    res = torch.cat(res).cpu().numpy().astype(np.float64)
     return res
 
 def rebuild_dict(params, model_dict):

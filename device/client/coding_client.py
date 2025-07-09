@@ -5,32 +5,19 @@ Upload: (k,r) RS-code and direct forward (upload first, forward second)
 '''
 
 import multiprocessing as mp
-import numpy as np
-import websockets.client
-import websockets.server
 import asyncio
 import time
 import torch
 from configparser import ConfigParser
 from torch.utils.data import DataLoader, TensorDataset
-import torch.nn.functional as F
-import functools
 import pickle
 from copy import deepcopy
 import os
 import signal
-from threading import Thread
-from queue import Queue
-import heapq
-import sys
-# import psutil
 
-from utils.config_to_arg import argument
-from utils.logger import create_logger # Logger
+from utils.logger import create_logger
 from utils.coding import OptimizedCoding
-from utils.get_params import rebuild_dict, rebuilt_dict_flatten, get_params, get_updates, get_updates_flatten, get_updates_flatten_network_test
-import models
-from node import Node
+from utils.get_params import rebuilt_dict_flatten, get_updates_flatten
 
 from concurrent import futures
 import grpc
@@ -54,17 +41,12 @@ class CodClient(Client):
         self.ID = self.args.idx_users
         
     def encoder(self, params, coding):
-        arr_local = params.reshape(-1)
-        model_local = coding.encode_RS(arr_local, self.args.upload_k, self.args.upload_r)
+        model_local = coding.encode_RS(params, self.args.upload_k, self.args.upload_r)
         return model_local
 
-    def decoding(self, part_list, order_list, coding):        
-        model_glob = np.array([])
-        for i in order_list:
-            model_glob = np.append(model_glob, part_list[i])
-        model_glob = model_glob.reshape(self.args.download_k, -1)
-        model_glob = coding.decode_RS(model_glob, self.args.download_k, self.args.download_r, order_list)
-        # reshape
+    def decoding(self, part_list, order_list, coding):
+        model_glob = torch.cat([part_list[i] for i in order_list], dim=0)
+        model_glob = coding.decode_RS(model_glob, self.args.download_k, self.args.download_r, torch.tensor(order_list))
         model_glob = model_glob.reshape(-1)
 
         return model_glob

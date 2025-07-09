@@ -58,15 +58,10 @@ class NCDAGRWServer(Server):
         return model_local
     '''
 
-    def decoding(self, part_list, order_list, coding):        
-        model_local = np.array([])
-        for i in order_list:
-                model_local = np.append(model_local,
-                                       part_list[i])
-        model_local = model_local.reshape(self.args.upload_k, -1)
-        model_local = coding.decode_RS(model_local, self.args.upload_k, self.args.upload_r,
-                                      order_list)
-        # reshape
+    def decoding(self, part_list, order_list, coding):
+        model_local = torch.cat([part_list[i] for i in order_list], dim=0)
+        model_local = coding.decode_RS(model_local, self.args.upload_k, self.args.upload_r, torch.tensor(order_list))
+
         model_local = model_local.reshape(-1)
 
         return model_local
@@ -185,14 +180,14 @@ class NCDAGRWServer(Server):
         # encoded_blocks = nc.encoding(blocks, 0, 128, self.args.download_k * self.args.num_users)
         log.info('Iteration '+ str(iter) + '. Blocks is splitted at {0} '.format(time.time()))
         for i in range(self.args.download_k):
-            encoded_blocks = nc.encoding(blocks, 0, 128, self.args.num_users)
+            encoded_blocks = nc.encoding(blocks, 0, 1024, self.args.num_users)
             log.info('Iteration '+ str(iter) + '. Blocks is encoded at {0} '.format(time.time()))
             for j in range(self.args.num_users):
                 if self.status_table[j] != 0:
                     continue
 
                 # encoded_block = nc.encoding(blocks, 0, 128, 1)
-                encoded_block = encoded_blocks[j]
+                encoded_block = encoded_blocks[j].clone().detach()
                 
                 model_glob_byte = pickle.dumps(encoded_block)
 
@@ -203,6 +198,7 @@ class NCDAGRWServer(Server):
                 shm_name = self.push_shared_data(send_byte)
                 self.send_queue.put((shm_name, key))
                 # log.info("Queue Block size is {0} ".format(send_byte.__sizeof__()/(2**20)))
+            del encoded_blocks
                     
     async def async_processor(self):
         log = create_logger(self.loggername)

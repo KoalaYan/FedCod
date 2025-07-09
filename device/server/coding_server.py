@@ -5,32 +5,17 @@ Upload: (k,r) RS-code and direct forward (upload first, forward second)
 '''
 
 import multiprocessing as mp
-import numpy as np
-import websockets.client
-import websockets.server
 import asyncio
-from configparser import ConfigParser
-import functools
 import pickle
 import torch
-from torch.utils.data import DataLoader, TensorDataset
-from torchvision import transforms
-import torchvision
-import threading
 import os
 import signal
-from threading import Thread
-from queue import Queue
 import time
 
-from utils.config_to_arg import argument
 from utils.logger import create_logger
-from utils.get_params import get_params, get_params_flatten, rebuilt_dict_flatten
-from utils.coding import structure, OptimizedCoding, NetworkCoding
-from data_distribution import HAR_dataloader
-from node import Node
+from utils.get_params import get_params_flatten
+from utils.coding import structure, OptimizedCoding
 import algorithms
-import models
 
 from concurrent import futures
 import grpc
@@ -49,15 +34,9 @@ class CodServer(Server):
         model_glob = coding.encode_RS(arr_glob, self.args.download_k, self.args.download_r)
         return model_glob
 
-    def decoding(self, client_idx, part_list, order_list, coding):        
-        model_local = np.array([])
-        for i in order_list:
-                model_local = np.append(model_local,
-                                       part_list[client_idx][i])
-        model_local = model_local.reshape(self.args.upload_k, -1)
-        model_local = coding.decode_RS(model_local, self.args.upload_k, self.args.upload_r,
-                                      order_list)
-        # reshape
+    def decoding(self, client_idx, part_list, order_list, coding):
+        model_local = torch.cat([part_list[client_idx][i] for i in order_list], dim=0)
+        model_local = coding.decode_RS(model_local, self.args.upload_k, self.args.upload_r, torch.tensor(order_list))
         model_local = model_local.reshape(-1)
 
         return model_local
@@ -88,7 +67,7 @@ class CodServer(Server):
                     local_model = self.decoding(client_idx, part_list.copy(), part_idx_list[client_idx].copy(), coding)
                     cur_code_time = time.time()
                     log.info('Iteration '+ str(self.iter) + ". Client " + str(client_idx) + "Decoding took about {0} seconds to complete".format(cur_code_time - pre_code_time))
-                    param_list.append(torch.tensor(local_model).reshape(-1,1).to(device))
+                    param_list.append(local_model.reshape(-1,1).to(device))
                     client_num_wait += 1
             if client_num_wait == self.args.num_users:
                 break
@@ -96,7 +75,8 @@ class CodServer(Server):
 
     # download: 999 + iteration number + data partition index + data
     def distribute(self, send_queue, model_glob, iter):
-        for idx, part in enumerate(model_glob):
+        for idx in range(model_glob.shape[0]):
+            part = model_glob[idx].clone().detach()
             model_glob_byte = pickle.dumps(part)
 
             idx_str = str(idx)  # change idx to str

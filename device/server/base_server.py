@@ -156,7 +156,7 @@ class Server(Node, communication_pb2_grpc.StreamServicer):
         self.dataset = self.load_dataset()
         last_time = time.time()
         for iter in range(self.args.epochs):
-            params = np.array(get_params_flatten(self.model.state_dict()), dtype=np.float64)
+            params = get_params_flatten(self.model.state_dict())
             cur_time = time.time()
             # print('-------------Iteration',iter,'-------------')
             log.info('Iteration '+ str(iter) + ". Operation took around {0} seconds to complete".format(cur_time - last_time))
